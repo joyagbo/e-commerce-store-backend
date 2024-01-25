@@ -9,7 +9,9 @@ token= req.headers.authorization.split(' ')[1];
         try {
            if(token){
             const decoded= jwt.verify(token, process.env.SECRET_KEY)
-            
+            const user = await User.findById(decoded?.id);
+            req.user = user;
+            next()
            } 
         } catch (error) {
            throw new Error("Not authorized, token expired, Please login again") 
@@ -18,4 +20,13 @@ token= req.headers.authorization.split(' ')[1];
         throw new Error('There is no token attached to the header!')
     }
 });
-module.exports = authMiddleware
+const isAdmin = asyncHandler(async (req, res)=>{
+    const {email} = req.user;
+    const adminUser = await User.findOne({email});
+    if(adminUser.role !=="admin"){
+        throw new Error("You are not an Admin")
+    }else{
+        next()
+    }
+})
+module.exports = {authMiddleware, isAdmin}
