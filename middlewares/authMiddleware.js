@@ -20,7 +20,7 @@ token= req.headers.authorization.split(' ')[1];
         throw new Error('There is no token attached to the header!')
     }
 });
-const isAdmin = asyncHandler(async (req, res)=>{
+const isAdmin = asyncHandler(async (req, res, next)=>{
     const {email} = req.user;
     const adminUser = await User.findOne({email});
     if(adminUser.role !=="admin"){
