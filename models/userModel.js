@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require("bcryptjs")
 // Declare the Schema of the Mongo model
-var userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     firstname:{
         type:String,
         required:true,
@@ -27,6 +27,10 @@ var userSchema = new mongoose.Schema({
     role:{
         type: String,
         default: "user",  
+    },
+    isBlocked:{
+        type:Boolean,
+        default: false
     },
     cart:{
         type: Array,
