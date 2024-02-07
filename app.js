@@ -5,10 +5,12 @@ const userRouter = require('./routes/userRoutes');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const app = express();
 const dotenv = require('dotenv').config()
+const cookieParser = require("cookie-parser")
 dbConnect()
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
+app.use(cookieParser());
 
 
   
