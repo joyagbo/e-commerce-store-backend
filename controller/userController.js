@@ -1,6 +1,9 @@
 const { generateToken } = require("../config/jsonwebtk");
 const User = require("../models/userModel");
 const asyncHandler= require("express-async-handler");
+const mongodbIdValid = require("../utils/validateMongodbId");
+const { generateRefreshToken } = require("../config/refreshToken");
+
 
 const createUser = asyncHandler (async(req,res)=>{
     const email = req.body.email;
@@ -19,6 +22,18 @@ const userLogin = asyncHandler(async (req, res)=>{
     //check if user is in database
     const findUser = await User.findOne({email});
     if (findUser && (await findUser.isPasswordMatched(password))){
+        const refreshToken = await generateRefreshToken(findUser?._id);
+        const updateuser = await User.findByIdAndUpdate(
+            findUser.id,
+            {
+                refreshToken:refreshToken,
+            },
+            {new:true}
+        );
+        res.cookie('refreshToken',refreshToken,{
+            httpOnly:true,
+            maxAge:72*60*60*1000,
+        })
         res.json({
             _id: findUser?._id,
             firstname: findUser?.firstname,
@@ -43,7 +58,8 @@ const getallUser = asyncHandler(async (req, res)=>{
 
 //get a one user
 const getaUser = asyncHandler(async(req, res)=>{
-    const { id } = req.params; 
+    const { id } = req.params;
+    mongodbIdValid(_id)
     try {
        const getaUser = await User.findById(id);
        res.json(getaUser)
@@ -55,6 +71,7 @@ const getaUser = asyncHandler(async(req, res)=>{
 //delete users
 const deleteaUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    mongodbIdValid(id)
     try {
         const deleteaUser = await User.findByIdAndDelete(id);
         res.json(deleteaUser)
@@ -66,6 +83,7 @@ const deleteaUser = asyncHandler(async (req, res) => {
 //Update Users
 const updateaUser = asyncHandler(async (req, res)=>{
     const { _id } = req.user;
+    mongodbIdValid(_id);
     try {
        const updatedUser = await User.findByIdAndUpdate(_id,
         {
@@ -87,6 +105,7 @@ const updateaUser = asyncHandler(async (req, res)=>{
 
 const blockUser = asyncHandler(async (req, res)=>{
     const {id} = req.params;
+    mongodbIdValid(id)
     try {
        const block = await User.findByIdAndUpdate(id, 
         {
@@ -106,6 +125,7 @@ const blockUser = asyncHandler(async (req, res)=>{
 
 const unblockUser = asyncHandler( async (req, res) => {
     const {id} = req.params;
+    mongodbIdValid(id)
     try {
         const unblock = await User.findByIdAndUpdate(id,
             {
